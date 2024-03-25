@@ -1,0 +1,210 @@
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.stream.Collectors;
+
+
+public class Customer implements Serializable {
+    public String id;
+    public String fullName;
+    public String insuranceCardId; // This can be null initially and set later
+    private List<String> claimIds;
+    private List<Customer> dependents;
+    public String role; // Policy holder (PH) or Dependent (D)
+    private static final String CUSTOMER_FILE = "customer_data.txt";
+    static final List<Customer> customers = new ArrayList<>();
+
+    public Customer(String id, String fullName, String role) {
+        this.id = id;
+        this.fullName = fullName;
+        this.role = role;
+        this.insuranceCardId = null; // Initialize as null
+        this.claimIds = new ArrayList<>();
+        this.dependents = new ArrayList<>(); // Instantiate a new list for each Customer object
+    }
+
+    public static boolean isValidCustomer(String cardHolderId, List<Customer> customers) {
+        return customers.stream().anyMatch(c -> c.getId().equals(cardHolderId));
+    }
+
+    // Getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getInsuranceCardId() {
+        return insuranceCardId;
+    }
+
+    public void setInsuranceCardId(String insuranceCardId) {
+        this.insuranceCardId = insuranceCardId;
+    }
+
+    public List<String> getClaimIds() {
+        return claimIds;
+    }
+
+    public void addClaimId(String claimId) {
+        this.claimIds.add(claimId);
+    }
+
+    public List<Customer> getDependents() {
+        return dependents;
+    }
+
+    public void addDependent(Customer dependent) {
+        if (this.dependents == null) {
+            this.dependents = new ArrayList<>();
+        }
+        this.dependents.add(dependent);
+    }
+
+    public static void handleCustomerOperations(Scanner scanner) {
+        System.out.println("\n1. Add customer\n2. Delete customer\n3. Find a customer\n4. Main page\nPlease select an option: ");
+        int customerOption = scanner.nextInt();
+        scanner.nextLine();  // Consume newline left-over
+        switch (customerOption) {
+            case 1:
+                addCustomer(scanner);
+                break;
+            case 2:
+                // Placeholder for delete customer
+                break;
+            case 3:
+                // Placeholder for find customer
+                break;
+            default:
+                System.out.println("Returning to main menu.");
+                break;
+        }
+    }
+
+    public static void addCustomer(Scanner scanner) {
+        System.out.println();
+        System.out.print("Enter ID (format 'c-' followed by 7 numbers): ");
+        String id = scanner.nextLine();
+        // Validate ID format
+        if (!id.matches("c-\\d{7}")) {
+            System.out.println("Invalid ID format. The ID must start with 'c-' followed by 7 digits.");
+            return;
+        }
+        System.out.print("Name: ");
+        String name = scanner.nextLine();
+        System.out.print("Is this a 1. Policy holder or 2. Dependent: ");
+        int roleChoice = scanner.nextInt();
+        scanner.nextLine();  // Consume newline left-over
+        String role = roleChoice == 1 ? "PH" : "D";
+        Customer customer = new Customer(id, name, role);
+        customers.add(customer);
+        System.out.println("Customer added successfully.");
+        if ("D".equals(role)) {
+            String phId;
+            Customer policyHolder;
+            do {
+                System.out.print("Enter policy holder ID (c-0000001 format): ");
+                phId = scanner.nextLine();
+                String finalPhId = phId;
+                policyHolder = customers.stream()
+                                        .filter(c -> c.getId().equals(finalPhId) && "PH".equals(c.getRole()))
+                                        .findFirst()
+                                        .orElse(null);
+                if (policyHolder == null) {
+                    System.out.println("No policy holder found with this ID. Please try again.");
+                }
+            } while (policyHolder == null);
+            policyHolder.addDependent(customer);
+            System.out.println("Dependent added successfully to policy holder: " + policyHolder.getFullName());
+        }
+    }
+
+    public static void viewCustomers() {
+        System.out.printf("%-14s %-12s %-16s %-20s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents");
+        for (Customer customer : customers) {
+            // Use the toString method of Customer to print details including dependents
+            System.out.println(customer.toString());
+        }
+    }
+
+    public static void loadCustomerFromFile() {
+        try (BufferedReader reader = new BufferedReader(new FileReader(CUSTOMER_FILE))) {
+            List<Customer> loadedCustomers = new ArrayList<>();
+            Map<String, List<String>> dependentsMap = new HashMap<>();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split("\t");
+                if (parts.length >= 3) {
+                    Customer customer = new Customer(parts[0], parts[1], parts[2]);
+                    if (parts.length > 3 && !parts[3].isEmpty()) {
+                        customer.setInsuranceCardId(parts[3]);
+                    }
+                    loadedCustomers.add(customer);
+                    if (parts.length > 4 && !parts[4].isEmpty()) {
+                        String[] dependentIds = parts[4].split(",");
+                        dependentsMap.put(parts[0], new ArrayList<>(List.of(dependentIds)));
+                    }
+                }
+            }
+            // Link dependents to their policyholders
+            for (Customer customer : loadedCustomers) {
+                List<String> dependentIds = dependentsMap.get(customer.getId());
+                if (dependentIds != null) {
+                    for (String dependentId : dependentIds) {
+                        loadedCustomers.stream()
+                                .filter(c -> c.getId().equals(dependentId))
+                                .findFirst().ifPresent(customer::addDependent);
+                    }
+                }
+            }
+            customers.clear();
+            customers.addAll(loadedCustomers);
+        } catch (IOException e) {
+            System.err.println("Error reading from file: " + e.getMessage());
+        }
+    }
+
+    public static void saveCustomersToFile() {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CUSTOMER_FILE, false))) { // false to overwrite
+            for (Customer customer : customers) {
+                String dependentIds = customer.getDependents().stream()
+                                                              .map(Customer::getId)
+                                                              .collect(Collectors.joining(",")); // Join multiple dependent IDs with a comma
+                writer.write(customer.getId() + "\t" + customer.getFullName() + "\t" + customer.getRole() + "\t" + customer.getInsuranceCardId() + "\t" + dependentIds + "\n");
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public String toString() {
+        String insuranceIdDisplay = insuranceCardId != null ? insuranceCardId : "null";
+        String dependentIds = dependents.isEmpty() ? "null" : dependents.stream()
+                                                                        .map(Customer::getId)
+                                                                        .collect(Collectors.joining("; "));
+        return String.format("%-14s %-12s %-16s %-20s %-10s",
+                id, role, fullName, insuranceIdDisplay, dependentIds);
+    }
+}

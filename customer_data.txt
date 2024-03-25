@@ -1,0 +1,6 @@
+c-0000001	David Beckham	PH	0000000001	c-0000003,c-0000004,c-0000006
+c-0000002	Messi	PH	null	c-0000005
+c-0000003	Kien	D	0000000002	
+c-0000004	Vinh	D	null	
+c-0000005	Mike	D	null	
+c-0000006	Ronaldinho	D	null	
