@@ -8,7 +8,6 @@ public class Main {
 
         System.out.println("\nWelcome to insurance claims management system");
         System.out.println("=============================================");
-        System.out.println("Below is all data in the system");
         System.out.println();
         System.out.println("1. Customer information:");
         Customer.viewCustomers();
@@ -18,17 +17,22 @@ public class Main {
         System.out.println();
         System.out.println("3. Claim Information:");
 
-
         try (Scanner scanner = new Scanner(System.in)) {
-            int option;
+            int option = 0;
             do {
-                System.out.println("\n1. Manage Customers \n2. Manage Insurance Cards \n3. Manage Claims \n4. Exit \nPlease select an option(1-4): ");
-                option = scanner.nextInt();
-                scanner.nextLine(); // Consume newline left-over
-
+                System.out.println("\n1. Manage Customers \n2. Manage Insurance Cards \n3. Manage Claims \n4. Exit");
+                System.out.print("Please select an option (1-4): ");
+                String input = scanner.nextLine();
+                try {
+                    option = Integer.parseInt(input);
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid input, please enter a number between 1 and 4.");
+                    continue; // Continue to the next iteration of the loop if input is not an integer
+                }
                 switch (option) {
                     case 1:
                         Customer.handleCustomerOperations(scanner);
+                        Customer.saveCustomersToFile();
                         break;
                     case 2:
                         List<InsuranceCard> existingCards = InsuranceCard.loadInsuranceCards(); // Ensure this list is updated
@@ -45,8 +49,6 @@ public class Main {
                         break;
                 }
             } while (option != 4);
-        } finally {
-            Customer.saveCustomersToFile(); // Save data to the file when exiting
         }
     }
 }

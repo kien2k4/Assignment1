@@ -98,4 +98,5 @@ public class Claim {
     }
 
     // Display information method
+
 }

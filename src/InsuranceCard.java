@@ -21,36 +21,46 @@ public class InsuranceCard {
     }
 
     public static void addInsuranceCard(Scanner scanner, List<Customer> customers, List<InsuranceCard> existingCards) {
-        System.out.print("Enter card number (10 digits): ");
-        String cardNumber = scanner.nextLine();
-        // Check for card number uniqueness
-        if (!cardNumber.matches("\\d{10}") || !isUniqueCardNumber(cardNumber, existingCards)) {
-            System.out.println("Invalid or duplicate card number. Please enter a unique 10-digit card number.");
-            return;
+        String cardNumber;
+        while (true) {
+            System.out.print("Enter card number (10 digits): ");
+            cardNumber = scanner.nextLine();
+            if (!cardNumber.matches("\\d{10}") || !isUniqueCardNumber(cardNumber, existingCards)) {
+                System.out.println("Invalid or duplicate card number. Please enter a unique 10-digit card number.");
+            } else {
+                break; // Valid and unique card number, exit the loop
+            }
         }
 
-        System.out.print("Enter customer ID (format 'c-' followed by 7 numbers): ");
-        String customerId = scanner.nextLine();
-        // Find the customer who will hold the card
-        Customer customer = customers.stream()
-                .filter(c -> c.getId().equals(customerId))
-                .findFirst()
-                .orElse(null);
-        if (customer == null) {
-            System.out.println("No customer found with this ID. Please try again.");
-            return;
+        Customer customer;
+        while (true) {
+            System.out.print("Enter customer ID (format 'c-' followed by 7 numbers): ");
+            String customerId = scanner.nextLine();
+            customer = customers.stream()
+                    .filter(c -> c.getId().equals(customerId))
+                    .findFirst()
+                    .orElse(null);
+            if (customer == null) {
+                System.out.println("No customer found with this ID. Please try again.");
+            } else {
+                break; // Valid customer found, exit the loop
+            }
         }
 
+        String policyOwner;
         System.out.print("Enter policy owner: ");
-        String policyOwner = scanner.nextLine();
-        System.out.print("Enter expiration date (DD/MM/YYYY): ");
-        String expirationDateString = scanner.nextLine();
+        policyOwner = scanner.nextLine();
+
         Date expirationDate;
-        try {
-            expirationDate = dateFormat.parse(expirationDateString);
-        } catch (Exception e) {
-            System.out.println("Invalid date format. Please use DD/MM/YYYY format.");
-            return;
+        while (true) {
+            System.out.print("Enter expiration date (DD/MM/YYYY): ");
+            String expirationDateString = scanner.nextLine();
+            try {
+                expirationDate = dateFormat.parse(expirationDateString);
+                break; // Valid date format, exit the loop
+            } catch (Exception e) {
+                System.out.println("Invalid date format. Please use DD/MM/YYYY format.");
+            }
         }
 
         // Apply the card to the policyholder and dependents
@@ -61,6 +71,7 @@ public class InsuranceCard {
         saveToFile(card);
         System.out.println("Insurance card added successfully.");
     }
+
 
     private static void applyCardToFamily(Customer customer, String cardNumber, List<Customer> customers) {
         if ("PH".equals(customer.getRole())) {

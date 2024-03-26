@@ -26,10 +26,6 @@ public class Customer implements Serializable {
         this.dependents = new ArrayList<>(); // Instantiate a new list for each Customer object
     }
 
-    public static boolean isValidCustomer(String cardHolderId, List<Customer> customers) {
-        return customers.stream().anyMatch(c -> c.getId().equals(cardHolderId));
-    }
-
     // Getters and setters
     public String getId() {
         return id;
@@ -103,13 +99,19 @@ public class Customer implements Serializable {
     }
 
     public static void addCustomer(Scanner scanner) {
-        System.out.println();
-        System.out.print("Enter ID (format 'c-' followed by 7 numbers): ");
-        String id = scanner.nextLine();
-        if (!id.matches("c-\\d{7}")) {
-            System.out.println("Invalid ID format. The ID must start with 'c-' followed by 7 digits.");
-            return;
+        String id;
+        while (true) {
+            System.out.print("Enter ID (format 'c-' followed by 7 numbers): ");
+            id = scanner.nextLine();
+            if (!id.matches("c-\\d{7}")) {
+                System.out.println("Invalid ID format. The ID must start with 'c-' followed by 7 digits.");
+            } else if (isValidCustomer(id, customers)) {
+                System.out.println("A customer with this ID already exists. Please enter a unique ID.");
+            } else {
+                break; // ID is valid and unique, break the loop
+            }
         }
+
         System.out.print("Name: ");
         String name = scanner.nextLine();
         System.out.print("Is this a 1. Policy holder or 2. Dependent: ");
@@ -119,35 +121,30 @@ public class Customer implements Serializable {
 
         Customer customer = new Customer(id, name, role);
         customers.add(customer);
-
         if ("D".equals(role)) {
-            System.out.print("Enter policy holder ID (c-0000001 format): ");
-            String phId = scanner.nextLine();
-            Customer policyHolder = customers.stream()
-                    .filter(c -> c.getId().equals(phId) && "PH".equals(c.getRole()))
-                    .findFirst()
-                    .orElse(null);
-            if (policyHolder == null) {
-                System.out.println("No policy holder found with this ID. Please try again.");
-                return;
+            while (true) {
+                System.out.print("Enter policy holder ID ('c-' followed by 7 numbers format): ");
+                String phId = scanner.nextLine();
+                Customer policyHolder = customers.stream()
+                        .filter(c -> c.getId().equals(phId) && "PH".equals(c.getRole()))
+                        .findFirst()
+                        .orElse(null);
+                if (policyHolder == null) {
+                    System.out.println("No policy holder found with this ID. Please try again.");
+                } else {
+                    customer.setInsuranceCardId(policyHolder.getInsuranceCardId()); // Assign the same card ID to the dependent
+                    policyHolder.addDependent(customer);
+                    break; // Valid policyholder found, break the loop
+                }
             }
-            customer.setInsuranceCardId(policyHolder.getInsuranceCardId()); // Assign the same card ID to the dependent
-            policyHolder.addDependent(customer);
         }
-
         System.out.println("Customer added successfully.");
-
         // Save the updated customer data
         saveCustomersToFile();
     }
 
-
-    public static void viewCustomers() {
-        System.out.printf("%-14s %-12s %-16s %-20s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents");
-        for (Customer customer : customers) {
-            // Use the toString method of Customer to print details including dependents
-            System.out.println(customer.toString());
-        }
+    public static boolean isValidCustomer(String cardHolderId, List<Customer> customers) {
+        return customers.stream().anyMatch(c -> c.getId().equals(cardHolderId));
     }
 
     public static void loadCustomerFromFile() {
@@ -197,6 +194,14 @@ public class Customer implements Serializable {
             }
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    public static void viewCustomers() {
+        System.out.printf("%-14s %-12s %-16s %-20s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents");
+        for (Customer customer : customers) {
+            // Use the toString method of Customer to print details including dependents
+            System.out.println(customer.toString());
         }
     }
 
