@@ -1,9 +1,5 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -27,13 +23,9 @@ public class Customer implements Serializable {
     }
 
     // Getters and setters
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public void setId(String id) { this.id = id; }
 
     public String getFullName() {
         return fullName;
@@ -63,10 +55,6 @@ public class Customer implements Serializable {
         return claimIds;
     }
 
-    public void addClaimId(String claimId) {
-        this.claimIds.add(claimId);
-    }
-
     public List<Customer> getDependents() {
         return dependents;
     }
@@ -76,6 +64,12 @@ public class Customer implements Serializable {
             this.dependents = new ArrayList<>();
         }
         this.dependents.add(dependent);
+    }
+    public void addClaimId(String claimId) {
+        if (this.claimIds == null) {
+            this.claimIds = new ArrayList<>();
+        }
+        this.claimIds.add(claimId);
     }
 
     public static void handleCustomerOperations(Scanner scanner) {
@@ -147,6 +141,8 @@ public class Customer implements Serializable {
         return customers.stream().anyMatch(c -> c.getId().equals(cardHolderId));
     }
 
+
+
     public static void loadCustomerFromFile() {
         try (BufferedReader reader = new BufferedReader(new FileReader(CUSTOMER_FILE))) {
             List<Customer> loadedCustomers = new ArrayList<>();
@@ -164,6 +160,13 @@ public class Customer implements Serializable {
                         String[] dependentIds = parts[4].split(",");
                         dependentsMap.put(parts[0], new ArrayList<>(List.of(dependentIds)));
                     }
+                    if (parts.length > 5 && !parts[5].isEmpty()) {
+                        List<String> loadedClaimIds = Arrays.asList(parts[5].split(","));
+                        for (String claimId : loadedClaimIds) {
+                            customer.addClaimId(claimId);
+                        }
+                    }
+                    customers.add(customer);
                 }
             }
             // Link dependents to their policyholders
@@ -172,8 +175,9 @@ public class Customer implements Serializable {
                 if (dependentIds != null) {
                     for (String dependentId : dependentIds) {
                         loadedCustomers.stream()
-                                .filter(c -> c.getId().equals(dependentId))
-                                .findFirst().ifPresent(customer::addDependent);
+                                       .filter(c -> c.getId().equals(dependentId))
+                                       .findFirst()
+                                       .ifPresent(customer::addDependent);
                     }
                 }
             }
@@ -185,23 +189,33 @@ public class Customer implements Serializable {
     }
 
     public static void saveCustomersToFile() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CUSTOMER_FILE,false))) { // false to overwrite
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CUSTOMER_FILE, false))) {
             for (Customer customer : customers) {
                 String dependentIds = customer.getDependents().stream()
-                                                              .map(Customer::getId)
-                                                              .collect(Collectors.joining(",")); // Join multiple dependent IDs with a comma
-                writer.write(customer.getId() + "\t" + customer.getFullName() + "\t" + customer.getRole() + "\t" + customer.getInsuranceCardId() + "\t" + dependentIds + "\n");
+                        .map(Customer::getId)
+                        .collect(Collectors.joining(","));
+
+                String claimIds = customer.getClaimIds().stream()
+                        .collect(Collectors.joining(","));
+
+                writer.write(customer.getId() + "\t" + customer.getFullName() + "\t" +
+                        customer.getRole() + "\t" + customer.getInsuranceCardId() + "\t" +
+                        dependentIds + "\t" + claimIds + "\n");
             }
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());
         }
     }
 
+
     public static void viewCustomers() {
-        System.out.printf("%-14s %-12s %-16s %-20s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents");
+        System.out.printf("%-14s %-12s %-16s %-20s %-12s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents", "Claims");
         for (Customer customer : customers) {
-            // Use the toString method of Customer to print details including dependents
-            System.out.println(customer.toString());
+            String claimIdsDisplay = customer.getClaimIds().isEmpty() ? "null" : String.join("; ", customer.getClaimIds());
+            System.out.printf("%-14s %-12s %-16s %-20s %-12s %s%n",
+                    customer.getId(), customer.getRole(), customer.getFullName(), customer.getInsuranceCardId(),
+                    customer.getDependents().stream().map(Customer::getId).collect(Collectors.joining("; ")),
+                    claimIdsDisplay);
         }
     }
 

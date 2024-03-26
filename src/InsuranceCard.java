@@ -10,7 +10,7 @@ public class InsuranceCard {
     private final String cardHolder;
     private final String policyOwner;
     private final Date expirationDate;
-    private static final String INSURANCE_CARD = "insurance_cards.txt";
+    private static final String INSURANCE_CARD_FILE = "insurance_cards.txt";
     private static final SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 
     public InsuranceCard(String cardNumber, String cardHolder, String policyOwner, Date expirationDate) {
@@ -65,7 +65,6 @@ public class InsuranceCard {
 
         // Apply the card to the policyholder and dependents
         applyCardToFamily(customer, cardNumber, customers);
-
         InsuranceCard card = new InsuranceCard(cardNumber, customer.getId(), policyOwner, expirationDate);
         existingCards.add(card);
         saveToFile(card);
@@ -95,7 +94,6 @@ public class InsuranceCard {
                 customer.setInsuranceCardId(cardNumber);
             }
         }
-
         // Save changes for all customers to reflect the new card assignments
         Customer.saveCustomersToFile();
     }
@@ -105,7 +103,7 @@ public class InsuranceCard {
     }
 
     private static void saveToFile(InsuranceCard card) {
-        try (FileWriter fw = new FileWriter(INSURANCE_CARD, true);
+        try (FileWriter fw = new FileWriter(INSURANCE_CARD_FILE, true);
              BufferedWriter bw = new BufferedWriter(fw);
              PrintWriter out = new PrintWriter(bw)) {
             out.println(card.cardNumber + "," + card.cardHolder + "," + card.policyOwner + "," + dateFormat.format(card.expirationDate));
@@ -117,7 +115,7 @@ public class InsuranceCard {
 
     public static List<InsuranceCard> loadInsuranceCards() {
         List<InsuranceCard> cards = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new FileReader(INSURANCE_CARD))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(INSURANCE_CARD_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(",");
@@ -126,8 +124,6 @@ public class InsuranceCard {
                     String cardHolder = parts[1];
                     String policyOwner = parts[2];
                     Date expirationDate = dateFormat.parse(parts[3]);
-
-
                     InsuranceCard card = new InsuranceCard(cardNumber, cardHolder, policyOwner, expirationDate);
                     cards.add(card);
                 }
@@ -139,7 +135,7 @@ public class InsuranceCard {
     }
 
     public static void viewInsuranceCards() {
-        try (BufferedReader reader = new BufferedReader(new FileReader(INSURANCE_CARD))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(INSURANCE_CARD_FILE))) {
             String line;
             System.out.printf("%-12s %-14s %-14s %-12s\n", "Card Number", "Card Holder", "Policy Owner", "Expiration Date");
             while ((line = reader.readLine()) != null) {

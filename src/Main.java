@@ -5,6 +5,7 @@ public class Main {
     public static void main(String[] args) {
         Customer.loadCustomerFromFile(); // This loads customers into the static list in the Customer class
         InsuranceCard.loadInsuranceCards(); // This loads cards into the static list in the Card class
+        Claim.loadClaimsFromFile();
 
         System.out.println("\nWelcome to insurance claims management system");
         System.out.println("=============================================");
@@ -16,6 +17,7 @@ public class Main {
         InsuranceCard.viewInsuranceCards();
         System.out.println();
         System.out.println("3. Claim Information:");
+        Claim.viewClaims();
 
         try (Scanner scanner = new Scanner(System.in)) {
             int option = 0;
@@ -32,14 +34,13 @@ public class Main {
                 switch (option) {
                     case 1:
                         Customer.handleCustomerOperations(scanner);
-                        Customer.saveCustomersToFile();
                         break;
                     case 2:
                         List<InsuranceCard> existingCards = InsuranceCard.loadInsuranceCards(); // Ensure this list is updated
                         InsuranceCard.addInsuranceCard(scanner, Customer.customers, existingCards);
                         break;
                     case 3:
-                        // Placeholder for claim operations
+                        Claim.manageClaims(scanner, Customer.customers);
                         break;
                     case 4:
                         System.out.println("Exiting the system...");
