@@ -28,17 +28,19 @@ public class InsuranceCard {
             System.out.println("Invalid or duplicate card number. Please enter a unique 10-digit card number.");
             return;
         }
-        System.out.print("Enter card holder ID (c-7numbers format): ");
-        String cardHolderId = scanner.nextLine();
+
+        System.out.print("Enter customer ID (format 'c-' followed by 7 numbers): ");
+        String customerId = scanner.nextLine();
         // Find the customer who will hold the card
-        Customer cardHolder = customers.stream()
-                .filter(c -> c.getId().equals(cardHolderId))
+        Customer customer = customers.stream()
+                .filter(c -> c.getId().equals(customerId))
                 .findFirst()
                 .orElse(null);
-        if (cardHolder == null) {
+        if (customer == null) {
             System.out.println("No customer found with this ID. Please try again.");
             return;
         }
+
         System.out.print("Enter policy owner: ");
         String policyOwner = scanner.nextLine();
         System.out.print("Enter expiration date (DD/MM/YYYY): ");
@@ -50,14 +52,41 @@ public class InsuranceCard {
             System.out.println("Invalid date format. Please use DD/MM/YYYY format.");
             return;
         }
-        InsuranceCard card = new InsuranceCard(cardNumber, cardHolder.getId(), policyOwner, expirationDate);
-        existingCards.add(card);  // Add the new card to the existing cards list
-        // Update customer's insurance card ID in memory
-        cardHolder.setInsuranceCardId(cardNumber);
-        // Save the updated customer information to the file
-        Customer.saveCustomersToFile();  // Ensure this method correctly updates the existing records
-        saveToFile(card);  // Save the new insurance card information
+
+        // Apply the card to the policyholder and dependents
+        applyCardToFamily(customer, cardNumber, customers);
+
+        InsuranceCard card = new InsuranceCard(cardNumber, customer.getId(), policyOwner, expirationDate);
+        existingCards.add(card);
+        saveToFile(card);
         System.out.println("Insurance card added successfully.");
+    }
+
+    private static void applyCardToFamily(Customer customer, String cardNumber, List<Customer> customers) {
+        if ("PH".equals(customer.getRole())) {
+            // Apply card to the policyholder and all dependents
+            customer.setInsuranceCardId(cardNumber);
+            for (Customer dependent : customer.getDependents()) {
+                dependent.setInsuranceCardId(cardNumber);
+            }
+        } else {
+            // Apply card to the dependent's policyholder and all dependents of that policyholder
+            Customer policyHolder = customers.stream()
+                    .filter(c -> c.getDependents().contains(customer))
+                    .findFirst()
+                    .orElse(null);
+            if (policyHolder != null) {
+                policyHolder.setInsuranceCardId(cardNumber);
+                for (Customer dependent : policyHolder.getDependents()) {
+                    dependent.setInsuranceCardId(cardNumber);
+                }
+                // Also set for the dependent if not already set
+                customer.setInsuranceCardId(cardNumber);
+            }
+        }
+
+        // Save changes for all customers to reflect the new card assignments
+        Customer.saveCustomersToFile();
     }
 
     private static boolean isUniqueCardNumber(String cardNumber, List<InsuranceCard> existingCards) {

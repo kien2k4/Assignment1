@@ -106,7 +106,6 @@ public class Customer implements Serializable {
         System.out.println();
         System.out.print("Enter ID (format 'c-' followed by 7 numbers): ");
         String id = scanner.nextLine();
-        // Validate ID format
         if (!id.matches("c-\\d{7}")) {
             System.out.println("Invalid ID format. The ID must start with 'c-' followed by 7 digits.");
             return;
@@ -115,30 +114,33 @@ public class Customer implements Serializable {
         String name = scanner.nextLine();
         System.out.print("Is this a 1. Policy holder or 2. Dependent: ");
         int roleChoice = scanner.nextInt();
-        scanner.nextLine();  // Consume newline left-over
+        scanner.nextLine(); // Consume newline left-over
         String role = roleChoice == 1 ? "PH" : "D";
+
         Customer customer = new Customer(id, name, role);
         customers.add(customer);
-        System.out.println("Customer added successfully.");
+
         if ("D".equals(role)) {
-            String phId;
-            Customer policyHolder;
-            do {
-                System.out.print("Enter policy holder ID (c-0000001 format): ");
-                phId = scanner.nextLine();
-                String finalPhId = phId;
-                policyHolder = customers.stream()
-                                        .filter(c -> c.getId().equals(finalPhId) && "PH".equals(c.getRole()))
-                                        .findFirst()
-                                        .orElse(null);
-                if (policyHolder == null) {
-                    System.out.println("No policy holder found with this ID. Please try again.");
-                }
-            } while (policyHolder == null);
+            System.out.print("Enter policy holder ID (c-0000001 format): ");
+            String phId = scanner.nextLine();
+            Customer policyHolder = customers.stream()
+                    .filter(c -> c.getId().equals(phId) && "PH".equals(c.getRole()))
+                    .findFirst()
+                    .orElse(null);
+            if (policyHolder == null) {
+                System.out.println("No policy holder found with this ID. Please try again.");
+                return;
+            }
+            customer.setInsuranceCardId(policyHolder.getInsuranceCardId()); // Assign the same card ID to the dependent
             policyHolder.addDependent(customer);
-            System.out.println("Dependent added successfully to policy holder: " + policyHolder.getFullName());
         }
+
+        System.out.println("Customer added successfully.");
+
+        // Save the updated customer data
+        saveCustomersToFile();
     }
+
 
     public static void viewCustomers() {
         System.out.printf("%-14s %-12s %-16s %-20s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents");
@@ -186,7 +188,7 @@ public class Customer implements Serializable {
     }
 
     public static void saveCustomersToFile() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CUSTOMER_FILE, false))) { // false to overwrite
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(CUSTOMER_FILE,false))) { // false to overwrite
             for (Customer customer : customers) {
                 String dependentIds = customer.getDependents().stream()
                                                               .map(Customer::getId)
@@ -204,7 +206,6 @@ public class Customer implements Serializable {
         String dependentIds = dependents.isEmpty() ? "null" : dependents.stream()
                                                                         .map(Customer::getId)
                                                                         .collect(Collectors.joining("; "));
-        return String.format("%-14s %-12s %-16s %-20s %-10s",
-                id, role, fullName, insuranceIdDisplay, dependentIds);
+        return String.format("%-14s %-12s %-16s %-20s %-10s", id, role, fullName, insuranceIdDisplay, dependentIds);
     }
 }

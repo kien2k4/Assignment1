@@ -15,6 +15,9 @@ public class Main {
         System.out.println();
         System.out.println("2. Insurance card information:");
         InsuranceCard.viewInsuranceCards();
+        System.out.println();
+        System.out.println("3. Claim Information:");
+
 
         try (Scanner scanner = new Scanner(System.in)) {
             int option;
