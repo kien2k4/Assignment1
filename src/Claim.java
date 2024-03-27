@@ -3,16 +3,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class Claim {
-    private String claimId; // format: f-0000000000
+public class Claim implements ClaimProcessManager {
+    private String claimId;
     private Date claimDate;
     private Customer insuredPerson;
     private String cardNumber;
     private Date examDate;
-    private List<String> documents; // format: ClaimId_CardNumber_DocumentName.pdf
+    private List<String> documents;
     private double claimAmount;
-    private String status; // New, Processing, Done
-    private String receiverBankingInfo; // Bank – Name – Number
+    private String status;
+    private String receiverBankingInfo;
     private static final List<Claim> claims = new ArrayList<>();
     private static final String CLAIM_FILE = "claims_data.txt";
 
@@ -27,6 +27,19 @@ public class Claim {
         this.status = status;
         this.receiverBankingInfo = receiverBankingInfo;
     }
+    public Claim() {
+        // Initialize with default or empty values
+        this.claimId = "";
+        this.claimDate = new Date();
+        this.insuredPerson = null;
+        this.cardNumber = "";
+        this.examDate = new Date();
+        this.documents = new ArrayList<>();
+        this.claimAmount = 0.0;
+        this.status = "";
+        this.receiverBankingInfo = "";
+    }
+
     public static List<Claim> getClaims() {
         return claims;
     }
@@ -107,6 +120,7 @@ public class Claim {
     // Display information method
     public static void manageClaims(Scanner scanner, List<Customer> customers) {
         int option;
+        Claim claimManager = new Claim(); // Create an instance of Claim
         do {
             System.out.println("\n--- Claim Management ---");
             System.out.println("1. Add Claim");
@@ -121,16 +135,16 @@ public class Claim {
 
             switch (option) {
                 case 1:
-                    addClaim(scanner, customers);
+                    claimManager.addClaim(scanner, customers); // Use the claimManager instance
                     break;
                 case 2:
-                    // updateClaim(scanner, customers); // Implement this method for updating claims
+                    // Implement or call updateClaim method on claimManager
                     break;
                 case 3:
-                    // viewClaims(customers); // Implement this method for viewing claims
+                    // Implement or call viewClaims method
                     break;
                 case 4:
-                    // deleteClaim(scanner, customers); // Implement this method for deleting claims
+                    // Implement or call deleteClaim method on claimManager
                     break;
                 case 5:
                     System.out.println("Returning to main menu...");
@@ -142,7 +156,7 @@ public class Claim {
         } while (option != 5);
     }
 
-    public static void addClaim(Scanner scanner, List<Customer> customers) {
+    public void addClaim(Scanner scanner, List<Customer> customers) {
         System.out.print("Enter claim ID (format 'f-' followed by 10 numbers): ");
         String claimId = scanner.nextLine();
         if (!claimId.matches("f-\\d{10}")) {
@@ -210,6 +224,26 @@ public class Claim {
         saveClaimsToFile();
         Customer.saveCustomersToFile();  // Make sure this line is after you've updated the claim list
         System.out.println("Claim added successfully.");
+    }
+    @Override
+    public void updateClaim(Claim claim) {
+        // Implementation of updating a claim
+    }
+
+    @Override
+    public void deleteClaim(Claim claim) {
+        // Implementation of deleting a claim
+    }
+
+    @Override
+    public Claim findClaimById(String id) {
+        // Implementation of finding a claim by ID
+        return claims.stream().filter(c -> c.claimId.equals(id)).findFirst().orElse(null);
+    }
+
+    @Override
+    public List<Claim> listAllClaims() {
+        return new ArrayList<>(claims); // Return a copy of the claims list
     }
 
     public static void saveClaimsToFile() {
