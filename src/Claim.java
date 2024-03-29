@@ -163,6 +163,13 @@ public class Claim implements ClaimProcessManager {
             System.out.println("Invalid claim ID format. It should be 'f-' followed by 10 numbers.");
             return;
         }
+
+        // Check if claim ID is unique
+        if (findClaimById(claimId) != null) {
+            System.out.println("Claim ID already exists. Please enter a unique claim ID.");
+            return;
+        }
+
         System.out.print("Enter claim date (DD/MM/YYYY): ");
         String claimDateString = scanner.nextLine();
         Date claimDate;
@@ -172,6 +179,7 @@ public class Claim implements ClaimProcessManager {
             System.out.println("Invalid date format. Please use DD/MM/YYYY.");
             return;
         }
+
         Customer insuredPerson = null;
         while (insuredPerson == null) {
             System.out.print("Enter insured person's ID (format 'c-' followed by 7 numbers): ");
@@ -184,6 +192,9 @@ public class Claim implements ClaimProcessManager {
             }
             if (insuredPerson == null) {
                 System.out.println("No customer found with this ID.");
+            } else if (insuredPerson.getInsuranceCardId() == null || insuredPerson.getInsuranceCardId().isEmpty()) {
+                System.out.println("This customer does not have an insurance card. Cannot add a claim.");
+                insuredPerson = null; // Reset to ensure we go through the loop again if needed
             }
         }
         System.out.print("Enter card number: ");
@@ -316,11 +327,9 @@ public class Claim implements ClaimProcessManager {
             System.out.println("No claims to display.");
             return;
         }
-
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         System.out.printf("%-15s %-12s %-15s %-12s %-15s %-20s %-12s %-20s %s\n",
                 "Claim ID", "Claim Date", "Insured Person", "Card Number", "Exam Date", "Documents", "Claim Amount", "Status", "Receiver Banking Info");
-
         for (Claim claim : claims) {
             String documents = String.join("; ", claim.getDocuments());
             System.out.printf("%-15s %-12s %-15s %-12s %-15s %-20s %-12s %-20s %s\n",

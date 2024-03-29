@@ -209,10 +209,10 @@ public class Customer implements Serializable {
 
 
     public static void viewCustomers() {
-        System.out.printf("%-14s %-12s %-16s %-20s %-12s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents", "Claims");
+        System.out.printf("%-14s %-12s %-16s %-20s %-30s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents", "Claims");
         for (Customer customer : customers) {
             String claimIdsDisplay = customer.getClaimIds().isEmpty() ? "null" : String.join("; ", customer.getClaimIds());
-            System.out.printf("%-14s %-12s %-16s %-20s %-12s %s%n",
+            System.out.printf("%-14s %-12s %-16s %-20s %-30s %s%n",
                     customer.getId(), customer.getRole(), customer.getFullName(), customer.getInsuranceCardId(),
                     customer.getDependents().stream().map(Customer::getId).collect(Collectors.joining("; ")),
                     claimIdsDisplay);
