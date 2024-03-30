@@ -2,6 +2,7 @@ import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Claim implements ClaimProcessManager {
     private String claimId;
@@ -157,39 +158,38 @@ public class Claim implements ClaimProcessManager {
     }
 
     public void addClaim(Scanner scanner, List<Customer> customers) {
-        System.out.print("Enter claim ID (format 'f-' followed by 10 numbers): ");
-        String claimId = scanner.nextLine();
-        if (!claimId.matches("f-\\d{10}")) {
-            System.out.println("Invalid claim ID format. It should be 'f-' followed by 10 numbers.");
-            return;
+        String claimId = "";
+        while (true) {
+            System.out.print("Enter claim ID (format 'f-' followed by 10 numbers): ");
+            claimId = scanner.nextLine();
+            if (!claimId.matches("f-\\d{10}")) {
+                System.out.println("Invalid claim ID format. It should be 'f-' followed by 10 numbers.");
+            } else if (findClaimById(claimId) != null) {
+                System.out.println("Claim ID already exists. Please enter a unique claim ID.");
+            } else {
+                break;
+            }
         }
 
-        // Check if claim ID is unique
-        if (findClaimById(claimId) != null) {
-            System.out.println("Claim ID already exists. Please enter a unique claim ID.");
-            return;
-        }
-
-        System.out.print("Enter claim date (DD/MM/YYYY): ");
-        String claimDateString = scanner.nextLine();
-        Date claimDate;
-        try {
-            claimDate = new SimpleDateFormat("dd/MM/yyyy").parse(claimDateString);
-        } catch (ParseException e) {
-            System.out.println("Invalid date format. Please use DD/MM/YYYY.");
-            return;
+        Date claimDate = null;
+        while (claimDate == null) {
+            System.out.print("Enter claim date (DD/MM/YYYY): ");
+            String claimDateString = scanner.nextLine();
+            try {
+                claimDate = new SimpleDateFormat("dd/MM/yyyy").parse(claimDateString);
+            } catch (ParseException e) {
+                System.out.println("Invalid date format. Please use DD/MM/YYYY.");
+            }
         }
 
         Customer insuredPerson = null;
         while (insuredPerson == null) {
             System.out.print("Enter insured person's ID (format 'c-' followed by 7 numbers): ");
             String insuredId = scanner.nextLine();
-            for (Customer customer : customers) {
-                if (customer.getId().equals(insuredId)) {
-                    insuredPerson = customer;
-                    break;
-                }
-            }
+            insuredPerson = customers.stream()
+                    .filter(c -> c.getId().equals(insuredId))
+                    .findFirst()
+                    .orElse(null);
             if (insuredPerson == null) {
                 System.out.println("No customer found with this ID.");
             } else if (insuredPerson.getInsuranceCardId() == null || insuredPerson.getInsuranceCardId().isEmpty()) {
@@ -197,45 +197,71 @@ public class Claim implements ClaimProcessManager {
                 insuredPerson = null; // Reset to ensure we go through the loop again if needed
             }
         }
-        System.out.print("Enter card number: ");
-        String cardNumber = scanner.nextLine();
 
-        System.out.print("Enter exam date (DD/MM/YYYY): ");
-        String examDateString = scanner.nextLine();
-        Date examDate;
-        try {
-            examDate = new SimpleDateFormat("dd/MM/yyyy").parse(examDateString);
-        } catch (ParseException e) {
-            System.out.println("Invalid date format. Please use DD/MM/YYYY.");
-            return;
+        // Use the card number from the insured person
+        String cardNumber = insuredPerson.getInsuranceCardId();
+
+        Date examDate = null;
+        while (examDate == null) {
+            System.out.print("Enter exam date (DD/MM/YYYY): ");
+            String examDateString = scanner.nextLine();
+            try {
+                examDate = new SimpleDateFormat("dd/MM/yyyy").parse(examDateString);
+            } catch (ParseException e) {
+                System.out.println("Invalid date format. Please use DD/MM/YYYY.");
+            }
         }
-        // Assuming documents are entered as a list of filenames, separated by commas
-        System.out.print("Enter documents (separated by comma): ");
-        String documentsString = scanner.nextLine();
-        List<String> documents = new ArrayList<>(Arrays.asList(documentsString.split("\\s*,\\s*")));
-        System.out.print("Enter claim amount: ");
-        double claimAmount;
-        try {
-            claimAmount = Double.parseDouble(scanner.nextLine());
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid amount. Please enter a number.");
-            return;
+
+        List<String> documents = new ArrayList<>();
+        while (documents.isEmpty()) {
+            System.out.print("Enter document names (separated by comma): ");
+            String documentsString = scanner.nextLine();
+            if (!documentsString.trim().isEmpty()) {
+                String finalClaimId = claimId;
+                documents = Arrays.stream(documentsString.split("\\s*,\\s*"))
+                        .map(docName -> finalClaimId + "_" + cardNumber + "_" + docName.trim().replaceAll("\\s+", "") + ".pdf")
+                        .collect(Collectors.toList());
+            }
         }
-        System.out.print("Enter status (New, Processing, Done): ");
-        String status = scanner.nextLine();
-        System.out.print("Enter receiver banking info (Bank – Name – Number): ");
-        String receiverBankingInfo = scanner.nextLine();
+
+        double claimAmount = 0.0;
+        while (claimAmount <= 0) {
+            System.out.print("Enter claim amount: ");
+            try {
+                claimAmount = Double.parseDouble(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid amount. Please enter a number.");
+            }
+        }
+
+        String status = "";
+        while (status.isEmpty()) {
+            System.out.print("Enter status (New, Processing, Done): ");
+            status = scanner.nextLine().trim();
+            if (status.isEmpty() || !(status.equals("New") || status.equals("Processing") || status.equals("Done"))) {
+                System.out.println("Invalid status. Please enter 'New', 'Processing', or 'Done'.");
+                status = "";
+            }
+        }
+
+        String receiverBankingInfo = "";
+        while (receiverBankingInfo.isEmpty()) {
+            System.out.print("Enter receiver banking info (Bank – Name – Number): ");
+            receiverBankingInfo = scanner.nextLine().trim();
+            if (receiverBankingInfo.isEmpty()) {
+                System.out.println("Receiver banking info cannot be empty.");
+            }
+        }
 
         Claim newClaim = new Claim(claimId, claimDate, insuredPerson, cardNumber, examDate, documents, claimAmount, status, receiverBankingInfo);
-
-        // Now add the claim ID to the customer's list of claim IDs
-        insuredPerson.addClaimId(newClaim.getId());  // Assuming 'insuredPerson' is the Customer object
-
-        Claim.getClaims().add(newClaim);  // Add the new claim to the list
+        insuredPerson.addClaimId(newClaim.getId());
+        Claim.getClaims().add(newClaim);
         saveClaimsToFile();
-        Customer.saveCustomersToFile();  // Make sure this line is after you've updated the claim list
+        Customer.saveCustomersToFile();
         System.out.println("Claim added successfully.");
     }
+
+
     @Override
     public void updateClaim(Claim claim) {
         // Implementation of updating a claim
@@ -307,7 +333,6 @@ public class Claim implements ClaimProcessManager {
                     getClaims().add(claim);
                 }
             }
-            System.out.println("Claims loaded successfully.");
         } catch (IOException | ParseException e) {
             System.err.println("An error occurred while loading claims from file: " + e.getMessage());
         }
@@ -322,26 +347,27 @@ public class Claim implements ClaimProcessManager {
         }
         return null; // or throw an exception if the customer must exist
     }
+
     public static void viewClaims() {
         if (claims.isEmpty()) {
             System.out.println("No claims to display.");
             return;
         }
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        System.out.printf("%-15s %-12s %-15s %-12s %-15s %-20s %-12s %-20s %s\n",
-                "Claim ID", "Claim Date", "Insured Person", "Card Number", "Exam Date", "Documents", "Claim Amount", "Status", "Receiver Banking Info");
+        System.out.printf("%-15s %-12s %-15s %-12s %-14s %-15s %-10s %-23s %s\n",
+                "Claim ID", "Claim Date", "Insured Person", "Card Number", "Exam Date", "Claim Amount", "Status", "Receiver Banking Info", "Documents");
         for (Claim claim : claims) {
             String documents = String.join("; ", claim.getDocuments());
-            System.out.printf("%-15s %-12s %-15s %-12s %-15s %-20s %-12s %-20s %s\n",
+            System.out.printf("%-15s %-12s %-15s %-12s %-14s %-15s %-10s %-23s %s\n",
                     claim.getId(),
                     dateFormat.format(claim.getClaimDate()),
                     claim.getInsuredPerson().getId(),
                     claim.getCardNumber(),
                     dateFormat.format(claim.getExamDate()),
-                    documents,
                     claim.getClaimAmount(),
                     claim.getStatus(),
-                    claim.getReceiverBankingInfo());
+                    claim.getReceiverBankingInfo(),
+                    documents);
         }
     }
 }

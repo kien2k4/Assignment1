@@ -82,9 +82,9 @@ public class InsuranceCard {
         } else {
             // Apply card to the dependent's policyholder and all dependents of that policyholder
             Customer policyHolder = customers.stream()
-                    .filter(c -> c.getDependents().contains(customer))
-                    .findFirst()
-                    .orElse(null);
+                                             .filter(c -> c.getDependents().contains(customer))
+                                             .findFirst()
+                                             .orElse(null);
             if (policyHolder != null) {
                 policyHolder.setInsuranceCardId(cardNumber);
                 for (Customer dependent : policyHolder.getDependents()) {

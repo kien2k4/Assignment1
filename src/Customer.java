@@ -195,8 +195,7 @@ public class Customer implements Serializable {
                         .map(Customer::getId)
                         .collect(Collectors.joining(","));
 
-                String claimIds = customer.getClaimIds().stream()
-                        .collect(Collectors.joining(","));
+                String claimIds = customer.getClaimIds().stream().collect(Collectors.joining(","));
 
                 writer.write(customer.getId() + "\t" + customer.getFullName() + "\t" +
                         customer.getRole() + "\t" + customer.getInsuranceCardId() + "\t" +
