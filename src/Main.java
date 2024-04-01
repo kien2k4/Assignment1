@@ -37,7 +37,7 @@ public class Main {
                         break;
                     case 2:
                         List<InsuranceCard> existingCards = InsuranceCard.loadInsuranceCards(); // Ensure this list is updated
-                        InsuranceCard.addInsuranceCard(scanner, Customer.customers, existingCards);
+                        InsuranceCard.manageInsuranceCards(scanner, Customer.customers, existingCards);
                         break;
                     case 3:
                         Claim.manageClaims(scanner, Customer.customers);
