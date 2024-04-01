@@ -146,6 +146,7 @@ public class Claim implements ClaimProcessManager {
                     break;
                 case 4:
                     // Implement or call deleteClaim method on claimManager
+                    claimManager.deleteClaim(scanner);
                     break;
                 case 5:
                     System.out.println("Returning to main menu...");
@@ -158,7 +159,7 @@ public class Claim implements ClaimProcessManager {
     }
 
     public void addClaim(Scanner scanner, List<Customer> customers) {
-        String claimId = "";
+        String claimId;
         while (true) {
             System.out.print("Enter claim ID (format 'f-' followed by 10 numbers): ");
             claimId = scanner.nextLine();
@@ -268,8 +269,27 @@ public class Claim implements ClaimProcessManager {
     }
 
     @Override
-    public void deleteClaim(Claim claim) {
-        // Implementation of deleting a claim
+    public void deleteClaim(Scanner scanner) {
+        System.out.print("Enter the claim ID of the claim to delete: ");
+        String claimId = scanner.nextLine();
+        Claim claimToDelete = findClaimById(claimId);
+        if (claimToDelete != null) {
+            // Remove the claim from the list of claims
+            claims.remove(claimToDelete);
+            System.out.println("Claim with ID " + claimId + " has been successfully deleted.");
+            // Remove the claim ID from the associated customer
+            Customer insuredPerson = claimToDelete.getInsuredPerson();
+            if (insuredPerson != null) {
+                insuredPerson.getClaimIds().remove(claimId);
+                System.out.println("Claim ID removed from customer record.");
+            }
+            // Save the updated claims to the file
+            saveClaimsToFile();
+            // Save the updated customers to the file
+            Customer.saveCustomersToFile();
+        } else {
+            System.out.println("No claim found with ID " + claimId + ".");
+        }
     }
 
     @Override

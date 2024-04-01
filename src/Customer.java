@@ -141,8 +141,6 @@ public class Customer implements Serializable {
         return customers.stream().anyMatch(c -> c.getId().equals(cardHolderId));
     }
 
-
-
     public static void loadCustomerFromFile() {
         try (BufferedReader reader = new BufferedReader(new FileReader(CUSTOMER_FILE))) {
             List<Customer> loadedCustomers = new ArrayList<>();
@@ -208,10 +206,10 @@ public class Customer implements Serializable {
 
 
     public static void viewCustomers() {
-        System.out.printf("%-14s %-12s %-16s %-20s %-30s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents", "Claims");
+        System.out.printf("%-14s %-12s %-14s %-20s %-33s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents", "Claims");
         for (Customer customer : customers) {
             String claimIdsDisplay = customer.getClaimIds().isEmpty() ? "null" : String.join("; ", customer.getClaimIds());
-            System.out.printf("%-14s %-12s %-16s %-20s %-30s %s%n",
+            System.out.printf("%-14s %-12s %-14s %-20s %-33s %s%n",
                     customer.getId(), customer.getRole(), customer.getFullName(), customer.getInsuranceCardId(),
                     customer.getDependents().stream().map(Customer::getId).collect(Collectors.joining("; ")),
                     claimIdsDisplay);
