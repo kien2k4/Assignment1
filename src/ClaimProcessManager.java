@@ -6,5 +6,5 @@ public interface ClaimProcessManager {
     void updateClaim(Scanner scanner);
     void deleteClaim(Scanner scanner); // Updated to accept Scanner
     Claim findClaimById(String id);
-    List<Claim> listAllClaims();
+    void viewClaims();
 }

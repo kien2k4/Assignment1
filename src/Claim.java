@@ -5,15 +5,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Claim implements ClaimProcessManager {
-    private String claimId;
+    private final String claimId;
     private Date claimDate;
     private Customer insuredPerson;
     private String cardNumber;
     private Date examDate;
-    private List<String> documents;
+    private final List<String> documents;
     private double claimAmount;
     private String status;
-    private String receiverBankingInfo;
+    private final String receiverBankingInfo;
     private static final List<Claim> claims = new ArrayList<>();
     private static final String CLAIM_FILE = "claims_data.txt";
 
@@ -48,10 +48,6 @@ public class Claim implements ClaimProcessManager {
     // Getter and setter methods
     public String getId() {
         return claimId;
-    }
-
-    public void setId(String id) {
-        this.claimId = id;
     }
 
     public Date getClaimDate() {
@@ -90,10 +86,6 @@ public class Claim implements ClaimProcessManager {
         return documents;
     }
 
-    public void setDocuments(List<String> documents) {
-        this.documents = documents;
-    }
-
     public double getClaimAmount() {
         return claimAmount;
     }
@@ -114,10 +106,6 @@ public class Claim implements ClaimProcessManager {
         return receiverBankingInfo;
     }
 
-    public void setReceiverBankingInfo(String receiverBankingInfo) {
-        this.receiverBankingInfo = receiverBankingInfo;
-    }
-
     // Display information method
     public static void manageClaims(Scanner scanner, List<Customer> customers) {
         int option;
@@ -126,9 +114,8 @@ public class Claim implements ClaimProcessManager {
             System.out.println("\n--- Claim Management ---");
             System.out.println("1. Add Claim");
             System.out.println("2. Update Claim");
-            System.out.println("3. View Claim");
-            System.out.println("4. Delete Claim");
-            System.out.println("5. Return to Main Menu");
+            System.out.println("3. Delete Claim");
+            System.out.println("4. Return to Main Menu");
             System.out.print("Select an option: ");
 
             option = scanner.nextInt();
@@ -143,13 +130,10 @@ public class Claim implements ClaimProcessManager {
                     claimManager.updateClaim(scanner);
                     break;
                 case 3:
-                    // Implement or call viewClaims method
-                    break;
-                case 4:
                     // Implement or call deleteClaim method on claimManager
                     claimManager.deleteClaim(scanner);
                     break;
-                case 5:
+                case 4:
                     System.out.println("Returning to main menu...");
                     break;
                 default:
@@ -276,89 +260,104 @@ public class Claim implements ClaimProcessManager {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         boolean updated = false;
 
-        System.out.println("Select the information you want to update:");
-        System.out.println("1. Claim Date");
-        System.out.println("2. Exam Date");
-        System.out.println("3. Claim Amount");
-        System.out.println("4. Status");
+        while (!updated) {
+            System.out.println("Select the information you want to update:");
+            System.out.println("1. Claim Date");
+            System.out.println("2. Exam Date");
+            System.out.println("3. Claim Amount");
+            System.out.println("4. Status");
+            System.out.println("5. Insured Person");
 
-        boolean validInput = false;
-        while (!validInput) {
             System.out.print("Enter your choice: ");
-            int choice = scanner.nextInt();
-            scanner.nextLine(); // Consume newline
 
-            switch (choice) {
-                case 1:
-                    while (true) {
+            try {
+                int choice = scanner.nextInt();
+                scanner.nextLine(); // Consume newline
+
+                switch (choice) {
+                    case 1:
+                        System.out.print("Enter new claim date (DD/MM/YYYY): ");
                         try {
-                            System.out.print("Enter new claim date (DD/MM/YYYY): ");
                             Date newClaimDate = dateFormat.parse(scanner.nextLine());
                             claimToUpdate.setClaimDate(newClaimDate);
                             updated = true;
-                            validInput = true;
-                            break;
                         } catch (ParseException e) {
                             System.out.println("Invalid date format. Please try again.");
                         }
-                    }
-                    break;
-                case 2:
-                    while (true) {
+                        break;
+                    case 2:
+                        System.out.print("Enter new exam date (DD/MM/YYYY): ");
                         try {
-                            System.out.print("Enter new exam date (DD/MM/YYYY): ");
                             Date newExamDate = dateFormat.parse(scanner.nextLine());
                             claimToUpdate.setExamDate(newExamDate);
                             updated = true;
-                            validInput = true;
-                            break;
                         } catch (ParseException e) {
                             System.out.println("Invalid date format. Please try again.");
                         }
-                    }
-                    break;
-                case 3:
-                    while (true) {
+                        break;
+                    case 3:
                         System.out.print("Enter new claim amount: ");
                         try {
                             double newClaimAmount = Double.parseDouble(scanner.nextLine());
                             if (newClaimAmount > 0) {
                                 claimToUpdate.setClaimAmount(newClaimAmount);
                                 updated = true;
-                                validInput = true;
-                                break;
                             } else {
                                 System.out.println("Claim amount must be greater than 0. Please try again.");
                             }
                         } catch (NumberFormatException e) {
                             System.out.println("Invalid input. Please enter a valid number.");
                         }
-                    }
-                    break;
-                case 4:
-                    while (true) {
+                        break;
+                    case 4:
                         System.out.print("Enter new status (New, Processing, Done): ");
                         String newStatus = scanner.nextLine();
                         if (newStatus.equals("New") || newStatus.equals("Processing") || newStatus.equals("Done")) {
                             claimToUpdate.setStatus(newStatus);
                             updated = true;
-                            validInput = true;
-                            break;
                         } else {
                             System.out.println("Invalid status. Please enter 'New', 'Processing', or 'Done'.");
                         }
-                    }
-                    break;
-                default:
-                    System.out.println("Invalid choice. Please select a valid option.");
-                    break;
+                        break;
+                    case 5:
+                        System.out.print("Enter new insured person's ID (format 'c-' followed by 7 numbers): ");
+                        String newInsuredId = scanner.nextLine();
+                        Customer newInsuredPerson = Customer.customers.stream()
+                                .filter(c -> c.getId().equals(newInsuredId))
+                                .findFirst()
+                                .orElse(null);
+
+                        if (newInsuredPerson == null) {
+                            System.out.println("No customer found with this ID.");
+                        } else if (newInsuredPerson.getInsuranceCardId() == null || newInsuredPerson.getInsuranceCardId().isEmpty()) {
+                            System.out.println("This customer does not have an insurance card. Cannot update the insured person.");
+                        } else {
+                            Customer oldInsuredPerson = claimToUpdate.getInsuredPerson();
+                            if (oldInsuredPerson != null) {
+                                oldInsuredPerson.getClaimIds().remove(claimToUpdate.getId());
+                            }
+
+                            claimToUpdate.setInsuredPerson(newInsuredPerson);
+                            newInsuredPerson.addClaimId(claimToUpdate.getId());
+                            claimToUpdate.setCardNumber(newInsuredPerson.getInsuranceCardId());
+                            updated = true;
+
+                            System.out.println("Insured person and card number updated successfully.");
+                        }
+                        break;
+                    default:
+                        System.out.println("Invalid choice. Please select a valid option.");
+                        break;
+                }
+            } catch (InputMismatchException e) {
+                System.out.println("Invalid input. Please enter a number.");
+                scanner.nextLine(); // to clear the buffer
             }
         }
 
-        if (updated) {
-            saveClaimsToFile();
-            System.out.println("Claim updated successfully.");
-        }
+        saveClaimsToFile();
+        Customer.saveCustomersToFile();
+        System.out.println("Claim updated successfully.");
     }
 
     @Override
@@ -389,11 +388,6 @@ public class Claim implements ClaimProcessManager {
     public Claim findClaimById(String id) {
         // Implementation of finding a claim by ID
         return claims.stream().filter(c -> c.claimId.equals(id)).findFirst().orElse(null);
-    }
-
-    @Override
-    public List<Claim> listAllClaims() {
-        return new ArrayList<>(claims); // Return a copy of the claims list
     }
 
     public static void saveClaimsToFile() {
@@ -461,17 +455,17 @@ public class Claim implements ClaimProcessManager {
         return null; // or throw an exception if the customer must exist
     }
 
-    public static void viewClaims() {
+    public void viewClaims() {
         if (claims.isEmpty()) {
             System.out.println("No claims to display.");
             return;
         }
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        System.out.printf("%-15s %-12s %-15s %-12s %-14s %-15s %-10s %-23s %s\n",
+        System.out.printf("%-15s %-12s %-15s %-12s %-14s %-15s %-12s %-23s %s\n",
                 "Claim ID", "Claim Date", "Insured Person", "Card Number", "Exam Date", "Claim Amount", "Status", "Receiver Banking Info", "Documents");
         for (Claim claim : claims) {
             String documents = String.join("; ", claim.getDocuments());
-            System.out.printf("%-15s %-12s %-15s %-12s %-14s %-15s %-10s %-23s %s\n",
+            System.out.printf("%-15s %-12s %-15s %-12s %-14s %-15s %-12s %-23s %s\n",
                     claim.getId(),
                     dateFormat.format(claim.getClaimDate()),
                     claim.getInsuredPerson().getId(),

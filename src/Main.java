@@ -20,7 +20,8 @@ public class Main {
         InsuranceCard.viewInsuranceCards();
         System.out.println();
         System.out.println("3. Claim Information:");
-        Claim.viewClaims();
+        Claim claim = new Claim();
+        claim.viewClaims();
 
         try (Scanner scanner = new Scanner(System.in)) {
             int option = 0;

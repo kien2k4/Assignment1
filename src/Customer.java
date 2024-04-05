@@ -25,22 +25,12 @@ public class Customer implements Serializable {
     // Getters and setters
     public String getId() { return id; }
 
-    public void setId(String id) { this.id = id; }
-
     public String getFullName() {
         return fullName;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
-
     public String getRole() {
         return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 
     public String getInsuranceCardId() {
@@ -73,22 +63,13 @@ public class Customer implements Serializable {
     }
 
     public static void handleCustomerOperations(Scanner scanner) {
-        System.out.println("\n1. Add customer\n2. Delete customer\n3. Find a customer\n4. Main page\nPlease select an option: ");
+        System.out.println("\n1. Add customer\n2. Main page\nPlease select an option: ");
         int customerOption = scanner.nextInt();
         scanner.nextLine();  // Consume newline left-over
-        switch (customerOption) {
-            case 1:
-                addCustomer(scanner);
-                break;
-            case 2:
-                // Placeholder for delete customer
-                break;
-            case 3:
-                // Placeholder for find customer
-                break;
-            default:
-                System.out.println("Returning to main menu.");
-                break;
+        if (customerOption == 1) {
+            addCustomer(scanner);
+        } else {
+            System.out.println("Returning to main menu.");
         }
     }
 
@@ -159,7 +140,7 @@ public class Customer implements Serializable {
                         dependentsMap.put(parts[0], new ArrayList<>(List.of(dependentIds)));
                     }
                     if (parts.length > 5 && !parts[5].isEmpty()) {
-                        List<String> loadedClaimIds = Arrays.asList(parts[5].split(","));
+                        String[] loadedClaimIds = parts[5].split(",");
                         for (String claimId : loadedClaimIds) {
                             customer.addClaimId(claimId);
                         }
@@ -193,7 +174,7 @@ public class Customer implements Serializable {
                         .map(Customer::getId)
                         .collect(Collectors.joining(","));
 
-                String claimIds = customer.getClaimIds().stream().collect(Collectors.joining(","));
+                String claimIds = String.join(",", customer.getClaimIds());
 
                 writer.write(customer.getId() + "\t" + customer.getFullName() + "\t" +
                         customer.getRole() + "\t" + customer.getInsuranceCardId() + "\t" +
@@ -203,7 +184,6 @@ public class Customer implements Serializable {
             System.err.println("Error writing to file: " + e.getMessage());
         }
     }
-
 
     public static void viewCustomers() {
         System.out.printf("%-14s %-12s %-14s %-20s %-33s %s\n", "ID", "Role", "Name", "InsuranceCardID", "Dependents", "Claims");
