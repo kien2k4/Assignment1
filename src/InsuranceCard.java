@@ -24,8 +24,7 @@ public class InsuranceCard {
             System.out.println("\n--- Manage Insurance Cards ---");
             System.out.println("1. Add Insurance Card");
             System.out.println("2. Delete Insurance Card");
-            System.out.println("3. Update Insurance Card");
-            System.out.println("4. Main Page");
+            System.out.println("3. Main Page");
             System.out.print("Select an option: ");
             option = scanner.nextInt();
             scanner.nextLine(); // Consume the newline character left by nextInt()
@@ -38,16 +37,13 @@ public class InsuranceCard {
                     deleteInsuranceCard(scanner, existingCards, customers);
                     break;
                 case 3:
-                    updateInsuranceCard(scanner, existingCards);
-                    break;
-                case 4:
                     System.out.println("Returning to main menu...");
                     break;
                 default:
                     System.out.println("Invalid option. Please select a valid option.");
                     break;
             }
-        } while (option != 4);
+        } while (option != 3);
     }
 
     public static void addInsuranceCard(Scanner scanner, List<Customer> customers, List<InsuranceCard> existingCards) {
@@ -168,11 +164,6 @@ public class InsuranceCard {
             }
         }
     }
-
-    private static void updateInsuranceCard(Scanner scanner, List<InsuranceCard> existingCards) {
-        // Implementation of updateInsuranceCard method
-    }
-
 
     private static boolean isUniqueCardNumber(String cardNumber, List<InsuranceCard> existingCards) {
         return existingCards.stream().noneMatch(card -> card.cardNumber.equals(cardNumber));

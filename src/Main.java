@@ -1,3 +1,6 @@
+/**
+ * @author <Dang Trung Kien - s3979510>
+ */
 import java.util.List;
 import java.util.Scanner;
 
@@ -5,7 +8,7 @@ public class Main {
     public static void main(String[] args) {
         Customer.loadCustomerFromFile(); // This loads customers into the static list in the Customer class
         InsuranceCard.loadInsuranceCards(); // This loads cards into the static list in the Card class
-        Claim.loadClaimsFromFile(); // This loads claims into the static list in the Claim class
+        Claim.loadClaimsFromFile(); // This loads claims into the list in the Claim class
 
         System.out.println("\nWelcome to insurance claims management system");
         System.out.println("=============================================");

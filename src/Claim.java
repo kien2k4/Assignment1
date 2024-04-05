@@ -140,6 +140,7 @@ public class Claim implements ClaimProcessManager {
                     break;
                 case 2:
                     // Implement or call updateClaim method on claimManager
+                    claimManager.updateClaim(scanner);
                     break;
                 case 3:
                     // Implement or call viewClaims method
@@ -262,10 +263,102 @@ public class Claim implements ClaimProcessManager {
         System.out.println("Claim added successfully.");
     }
 
+    public void updateClaim(Scanner scanner) {
+        System.out.print("Enter the claim ID of the claim to update: ");
+        String claimId = scanner.nextLine();
+        Claim claimToUpdate = findClaimById(claimId);
 
-    @Override
-    public void updateClaim(Claim claim) {
-        // Implementation of updating a claim
+        if (claimToUpdate == null) {
+            System.out.println("No claim found with ID " + claimId + ".");
+            return;
+        }
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        boolean updated = false;
+
+        System.out.println("Select the information you want to update:");
+        System.out.println("1. Claim Date");
+        System.out.println("2. Exam Date");
+        System.out.println("3. Claim Amount");
+        System.out.println("4. Status");
+
+        boolean validInput = false;
+        while (!validInput) {
+            System.out.print("Enter your choice: ");
+            int choice = scanner.nextInt();
+            scanner.nextLine(); // Consume newline
+
+            switch (choice) {
+                case 1:
+                    while (true) {
+                        try {
+                            System.out.print("Enter new claim date (DD/MM/YYYY): ");
+                            Date newClaimDate = dateFormat.parse(scanner.nextLine());
+                            claimToUpdate.setClaimDate(newClaimDate);
+                            updated = true;
+                            validInput = true;
+                            break;
+                        } catch (ParseException e) {
+                            System.out.println("Invalid date format. Please try again.");
+                        }
+                    }
+                    break;
+                case 2:
+                    while (true) {
+                        try {
+                            System.out.print("Enter new exam date (DD/MM/YYYY): ");
+                            Date newExamDate = dateFormat.parse(scanner.nextLine());
+                            claimToUpdate.setExamDate(newExamDate);
+                            updated = true;
+                            validInput = true;
+                            break;
+                        } catch (ParseException e) {
+                            System.out.println("Invalid date format. Please try again.");
+                        }
+                    }
+                    break;
+                case 3:
+                    while (true) {
+                        System.out.print("Enter new claim amount: ");
+                        try {
+                            double newClaimAmount = Double.parseDouble(scanner.nextLine());
+                            if (newClaimAmount > 0) {
+                                claimToUpdate.setClaimAmount(newClaimAmount);
+                                updated = true;
+                                validInput = true;
+                                break;
+                            } else {
+                                System.out.println("Claim amount must be greater than 0. Please try again.");
+                            }
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid input. Please enter a valid number.");
+                        }
+                    }
+                    break;
+                case 4:
+                    while (true) {
+                        System.out.print("Enter new status (New, Processing, Done): ");
+                        String newStatus = scanner.nextLine();
+                        if (newStatus.equals("New") || newStatus.equals("Processing") || newStatus.equals("Done")) {
+                            claimToUpdate.setStatus(newStatus);
+                            updated = true;
+                            validInput = true;
+                            break;
+                        } else {
+                            System.out.println("Invalid status. Please enter 'New', 'Processing', or 'Done'.");
+                        }
+                    }
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please select a valid option.");
+                    break;
+            }
+        }
+
+        if (updated) {
+            saveClaimsToFile();
+            System.out.println("Claim updated successfully.");
+        }
     }
 
     @Override
