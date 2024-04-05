@@ -1,3 +1,6 @@
+/**
+ * @author <Dang Trung Kien - s3979510>
+ */
 import java.util.List;
 import java.util.Scanner;
 

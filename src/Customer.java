@@ -1,7 +1,10 @@
+/**
+ * @author <Dang Trung Kien - s3979510>
+ */
+
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 public class Customer implements Serializable {
     public String id;

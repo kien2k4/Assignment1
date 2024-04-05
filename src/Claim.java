@@ -1,3 +1,6 @@
+/**
+ * @author <Dang Trung Kien - s3979510>
+ */
 import java.io.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
